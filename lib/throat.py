@@ -39,13 +39,14 @@ def throat_properties(gas):
                 P_low = P_mid
 
         gas.equilibrate('TP')
+
+        # speed of sound
         c = np.sqrt(gas.cp / gas.cv * ct.gas_constant
                     * gas.T / gas.mean_molecular_weight)
-        print(c)
         Hto = gas.enthalpy_mass + 0.5*c*c
 
     gamma = gas.cp_mass / gas.cv_mass
-    return (gamma, gas.T, gas.P)
+    return gamma, gas.T, gas.P
 
 
 if __name__ == "__main__":
