@@ -10,7 +10,7 @@ def exit_properties(gas, P_exit):
     T_high = gas.T
     T_low = 298
 
-    while abs(So - S_test) > 1e-8:
+    while abs(So - gas.entropy_mass) > 1e-8:
         T_mid = (T_high + T_low) / 2
 
         gas.TP = T_mid, P_exit
@@ -33,5 +33,4 @@ def exit_properties(gas, P_exit):
 
 if __name__ == "__main__":
     gas = ct.Solution('gri30.yaml')
-    P_amb = 1e5
-    print(exit_properties(gas, P_amb))
+    print(exit_properties(gas, 1e5))
