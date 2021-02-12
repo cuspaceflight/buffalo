@@ -1,7 +1,7 @@
 """Calculate throat properties."""
 
 import cantera as ct
-import numpy as np
+from numpy import sqrt
 
 
 def throat_properties(gas):
@@ -16,6 +16,7 @@ def throat_properties(gas):
 
     Hto = Ho + 1
     tol = 1e-8
+
     P_high = P_test
     P_low = P_amb / 1000
     P_mid = 0.5 * (P_high + P_low)
@@ -41,8 +42,8 @@ def throat_properties(gas):
         gas.equilibrate('TP')
 
         # speed of sound
-        c = np.sqrt(gas.cp / gas.cv * ct.gas_constant
-                    * gas.T / gas.mean_molecular_weight)
+        c = sqrt(gas.cp / gas.cv * ct.gas_constant
+                 * gas.T / gas.mean_molecular_weight)
         Hto = gas.enthalpy_mass + 0.5*c*c
 
     gamma = gas.cp_mass / gas.cv_mass

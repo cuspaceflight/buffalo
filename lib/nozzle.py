@@ -1,7 +1,6 @@
 """Calculate nozzle edit properties."""
 
 import cantera as ct
-import numpy as np
 
 
 def exit_properties(gas, P_exit):
