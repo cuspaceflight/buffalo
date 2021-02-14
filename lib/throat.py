@@ -19,7 +19,7 @@ def throat_properties(gas):
 
     P_high = P_test
     P_low = P_amb / 1000
-    P_mid = 0.5 * (P_high + P_low)
+    P_mid = (P_high + P_low) / 2
 
     while Ho <= Hto:
         T_test -= 1
@@ -44,7 +44,7 @@ def throat_properties(gas):
         # speed of sound
         c = sqrt(gas.cp / gas.cv * ct.gas_constant
                  * gas.T / gas.mean_molecular_weight)
-        Hto = gas.enthalpy_mass + 0.5*c*c
+        Hto = gas.enthalpy_mass + c*c / 2
 
     gamma = gas.cp_mass / gas.cv_mass
     return gamma, gas.T, gas.P

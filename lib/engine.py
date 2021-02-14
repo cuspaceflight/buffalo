@@ -14,7 +14,7 @@ def engine_properties(r_A, T_pre, P_init, Fuel, Oxidiser, mdot, OF, D_throat):
         Thrust, Isp
     ) = np.zeros((37, len(OF), len(mdot)))
 
-    if (fuel == "IPA"):
+    if (Fuel == "IPA"):
         # we need to set the fuel properties here
         #
         # eventually this should be removed but I'm using fuel as a
