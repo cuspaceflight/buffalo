@@ -23,9 +23,9 @@ def exit_properties(gas, P_exit):
     Cp_e = gas.cp_mass
     Cv_e = gas.cv_mass
 
-    Re = Cp_e - Cv_e
-    Ke = Cp_e / Cv_e
-    Te = T_mid
+    R_e = Cp_e - Cv_e
+    K_e = Cp_e / Cv_e
+    T_e = T_mid
 
     return Te, Re, Ke
 

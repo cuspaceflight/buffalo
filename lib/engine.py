@@ -1,6 +1,7 @@
 """Get engine properties."""
 
 import numpy as np
+import cantera as ct
 
 
 def engine_properties(r_A, T_pre, P_init, Fuel, Oxidiser, mdot, OF, D_throat):
@@ -14,10 +15,22 @@ def engine_properties(r_A, T_pre, P_init, Fuel, Oxidiser, mdot, OF, D_throat):
         Thrust, Isp
     ) = np.zeros((37, len(OF), len(mdot)))
 
-    if (Fuel == "IPA"):
-        # we need to set the fuel properties here
-        #
-        # eventually this should be removed but I'm using fuel as a
-        # parameter so that if there's problems getting support up and
-        # running we can test with other fuels (eg ethanol)
-        print("winning!")
+    species = {
+        "C3H8O,2propanol": 1,
+        "N2O": 1
+    }
+
+    # So the NASA dataset is really special in the way it operates
+    # you have no idea how long it took me to get this working
+    fuel = ct.Solution(source="""
+    ideal_gas(name='nasa', elements='C O H N',
+          species='nasa: C3H8O,2propanol N2O',
+          options=['skip_undeclared_elements'],
+          initial_state=state(temperature=300, pressure=101325))
+    """)
+
+    fuel.X = ', '.join([f"{s}: {n}" for s, n in species.items()])
+    print(fuel())
+
+
+engine_properties(None, None, None, None, None, [], [], None)
