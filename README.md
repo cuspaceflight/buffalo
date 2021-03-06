@@ -1,5 +1,5 @@
 <p align="center">
-	<img width="300px" src="buffalo.png">
+	<img width="300px" src="res/buffalo.png">
 	<h1 align="center">BUFFALO</h1>
 	<h3 align="center">Cambridge University Spaceflight</h3>
 </p>
