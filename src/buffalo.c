@@ -8,13 +8,58 @@
 
 #include <Python.h>
 
+#include "flightdata.h"
+
+static PyObject* loadAlt(PyObject* self, PyObject* args)
+{
+    PyObject* PyList_altitudes;
+    if (!PyArg_ParseTuple(args, "O", &PyList_altitudes)
+        return NULL;
+
+    size_t len = PyObject_Length(PyList_altitudes);
+    if (!len) return NULL; // TODO: Check if list
+
+    free(altitudes);
+    altitudes = (float*) malloc(len * sizeof(float));
+
+    for (size_t i = 0; i < len; i++) {
+        PyObject item = PyList_GetItem(PyList_altitudes, i);
+        altitudes[i] = PyFloat_AsFloat(item);
+
+        if (PyErr_Occurred()) return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+static PyObject* loadBaro(PyObject* self, PyObject* args)
+{
+    Py_RETURN_NONE;
+}
+
+static PyObject* loadAccel(PyObject* self, PyObject* args)
+{
+    Py_RETURN_NONE;
+}
+
+static PyObject* loadGyro(PyObject* self, PyObject* args)
+{
+    Py_RETURN_NONE;
+}
+
+static PyObject* simulateDummySensors(PyObject* self, PyObject* args,
+                                                      PyObject* keywds)
+{
+    Py_RETURN_NONE;
+}
+
+static PyObject* simulateRealSensors(PyObject* self, PyObject* args,
+                                                     PyObject* keywds)
+{
+    Py_RETURN_NONE;
+}
+
 static PyMethodDef buffalomethods[] = {
-    {
-        "load_atmos",
-        (PyCFunction)(void(*)(void))loadAtmos,
-        METH_VARARGS,
-        "Load atmospheric data."
-    },
     {
         "load_alt",
         (PyCFunction)(void(*)(void))loadAlt,
@@ -47,7 +92,7 @@ static PyMethodDef buffalomethods[] = {
     },
     {
         "simulate_real_sensors"
-        (PyCFunction)(void(*)(void))simulateDummySensors,
+        (PyCFunction)(void(*)(void))simulateRealSensors,
         METH_VARARGS | METH_KEYWORDS,
         "Simulate flight computer operation with real sensor data."
     }
