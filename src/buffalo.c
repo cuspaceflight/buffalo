@@ -10,52 +10,49 @@
 
 #include "flightdata.h"
 
-static PyObject* loadAlt(PyObject* self, PyObject* args)
-{
+static PyObject* loadAlt(PyObject* self, PyObject* args) {
     PyObject* PyList_altitudes;
-    if (!PyArg_ParseTuple(args, "O", &PyList_altitudes))
-        return NULL;
+    if (!PyArg_ParseTuple(args, "O", &PyList_altitudes)) Py_RETURN_NONE;
+
+    // Must be list
+    if (!PyList_Check(PyList_altitudes)) Py_RETURN_NONE;
 
     size_t len = PyObject_Length(PyList_altitudes);
-    if (!len) return NULL; // TODO: Check if list
+    if (!len) Py_RETURN_NONE;
 
-    free((void*) altitudes);
+    // Prevent double-free if this is the first call
+    if (altitudes != NULL) free((void*) altitudes);
+
     altitudes = (float*) malloc(len * sizeof(float));
 
     for (size_t i = 0; i < len; i++) {
         PyObject* item = PyList_GetItem(PyList_altitudes, i);
         altitudes[i] = (float) PyFloat_AsDouble(item);
 
-        if (PyErr_Occurred()) return NULL;
+        if (PyErr_Occurred()) Py_RETURN_NONE;
     }
-
     Py_RETURN_NONE;
 }
 
-static PyObject* loadBaro(PyObject* self, PyObject* args)
-{
+static PyObject* loadBaro(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* loadAccel(PyObject* self, PyObject* args)
-{
+static PyObject* loadAccel(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* loadGyro(PyObject* self, PyObject* args)
-{
+static PyObject* loadGyro(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
 static PyObject* simulateDummySensors(PyObject* self, PyObject* args,
-                                                      PyObject* keywds)
-{
+                                                      PyObject* keywds) {
     Py_RETURN_NONE;
 }
 
 static PyObject* simulateRealSensors(PyObject* self, PyObject* args,
-                                                     PyObject* keywds)
-{
+                                                     PyObject* keywds) {
     Py_RETURN_NONE;
 }
 
