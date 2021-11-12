@@ -1,8 +1,8 @@
 #ifndef FLIGHT_H
 #define FLIGHT_H
 
-#include <vector.h>
-#include <atmosphere.h>
+#include "vector.h"
+#include "atmosphere.h"
 
 float* altitudes;
 atmos_t* pressures; // baro (???)

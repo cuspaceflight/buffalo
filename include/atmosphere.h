@@ -1,7 +1,7 @@
 #ifndef ATMOS_H
 #define ATMOS_H
 
-typedef struct atmos_datapoint { float h, p; };
+typedef struct atmos_datapoint { float h, p; } atmos_datapoint;
 
 /* define the US Standard Atmosphere 1979 */
 const atmos_datapoint US_SA_1979[10];
