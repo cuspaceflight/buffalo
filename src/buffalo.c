@@ -1,14 +1,16 @@
-                     /* * * * * * * * * * * * * * * * * * *
-                     *              BUFFALO               *
-                     * FLIGHT COMPUTER SIMULATION SYSTEM  *
-                     *                                    *
-                     *  COPYRIGHT (C)  2021 H. E. FRANKS  *
-                     *  CAMBRIDGE UNIVERSITY SPACEFLIGHT  *
-                     * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                    BUFFALO                                   *
+*                       FLIGHT COMPUTER SIMULATION SYSTEM                      *
+*                                                                              *
+*                         COPYRIGHT (C) 2021 H.E. FRANKS                       *
+*                        CAMBRIDGE UNIVERSITY SPACEFLIGHT                      *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <Python.h>
 
 #include "flightdata.h"
+#include "fc.h"
+
 
 static PyObject* loadAlt(PyObject* self, PyObject* args) {
     PyObject* PyList_altitudes;
@@ -26,8 +28,8 @@ static PyObject* loadAlt(PyObject* self, PyObject* args) {
     altitudes = (float*) malloc(len * sizeof(float));
 
     for (size_t i = 0; i < len; i++) {
-        PyObject* item = PyList_GetItem(PyList_altitudes, i);
-        altitudes[i] = (float) PyFloat_AsDouble(item);
+        altitudes[i] = (float) PyFloat_AsDouble(
+            PyList_GetItem(PyList_altitudes, i));
 
         if (PyErr_Occurred()) Py_RETURN_NONE;
     }
@@ -46,15 +48,25 @@ static PyObject* loadGyro(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* simulateDummySensors(PyObject* self, PyObject* args,
-                                                      PyObject* keywds) {
+static inline PyObject* simulate()
+{
     Py_RETURN_NONE;
 }
 
-static PyObject* simulateRealSensors(PyObject* self, PyObject* args,
-                                                     PyObject* keywds) {
-    Py_RETURN_NONE;
+static PyObject* simulateDummySensors(PyObject* self, PyObject* args,
+                                                      PyObject* keywds)
+{
+    /* PRECALCULATE FLIGHT PROFILE */
+    return simulate();
 }
+
+static PyObject* simulateRealSensors(PyObject* self, PyObject* args,
+                                                     PyObject* keywds)
+{
+    /* PRECALCULATE FLIGHT PROFILE */
+    return simulate();
+}
+
 
 static PyMethodDef buffalomethods[] = {
     {
