@@ -1,18 +1,19 @@
 
+#include <stdio.h>
+
 #include "ch.h"
 #include <math.h>
 // #include "m3can.h"
 #include "config.h"
-#include "status.h"
 #include "state_estimation.h"
+#include "status.h"
 
 /* Kalman filter state and covariance storage.
  * See below for detailed description.
  */
-static float x[3]    = {0.0f, 0.0f, 0.0f};
-static float p[3][3] = {{250.0f, 0.0f, 0.0f},
-                        {  0.0f, 0.1f, 0.0f},
-                        {  0.0f, 0.0f, 0.1f}};
+static float x[3] = {0.0f, 0.0f, 0.0f};
+static float p[3][3] = {
+    {250.0f, 0.0f, 0.0f}, {0.0f, 0.1f, 0.0f}, {0.0f, 0.0f, 0.1f}};
 
 /* Used to compute dt for each prediction step. */
 static systime_t t_clk;
@@ -24,14 +25,14 @@ static binary_semaphore_t kalman_bsem;
 static const float Rs = 8.31432f;
 static const float g0 = 9.80665f;
 static const float M = 0.0289644f;
-static const float Lb[7] = {
-    -0.0065f, 0.0f, 0.001, 0.0028f, 0.0f, -0.0028f, -0.002f};
-static const float Pb[7] = {
-    101325.0f, 22632.10f, 5474.89f, 868.02f, 110.91f, 66.94f, 3.96f};
-static const float Tb[7] = {
-    288.15f, 216.65, 216.65, 228.65, 270.65, 270.65, 214.65};
-static const float Hb[7] = {
-    0.0f, 11000.0f, 20000.0f, 32000.0f, 47000.0f, 51000.0f, 71000.0f};
+static const float Lb[7] = {-0.0065f, 0.0f,     0.001,  0.0028f,
+                            0.0f,     -0.0028f, -0.002f};
+static const float Pb[7] = {101325.0f, 22632.10f, 5474.89f, 868.02f,
+                            110.91f,   66.94f,    3.96f};
+static const float Tb[7] = {288.15f, 216.65, 216.65, 228.65,
+                            270.65,  270.65, 214.65};
+static const float Hb[7] = {0.0f,     11000.0f, 20000.0f, 32000.0f,
+                            47000.0f, 51000.0f, 71000.0f};
 
 /* Controlled externally to indicate whether the barometer should be used
  * (not during transonic regime) and whether a high-g dynamic event is expected
@@ -51,7 +52,6 @@ static float state_estimation_p2a_zero_lapse(float p, int b);
  * accelerometers. Called from state_estimation_new_accel.
  */
 static void state_estimation_update_accel(float accel, float r);
-
 
 /*
  * Run the Kalman prediction step and return the latest state estimate.
@@ -133,107 +133,94 @@ static void state_estimation_update_accel(float accel, float r);
  *
  * It's just not quite awful enough to write general purpose matrix routines.
  */
-state_estimate_t state_estimation_get_state()
-{
-    float q, dt, dt2, dt3, dt4, dt5, dt6, dt2_2;
-    state_estimate_t x_out;
+state_estimate_t state_estimation_get_state(float dt) {
+  float q, dt2, dt3, dt4, dt5, dt6, dt2_2;
+  state_estimate_t x_out;
+  /* Set the process noise variance according to whether we expect
+   * something to change soon. These numbers are more or less guesses.
+   */
+  if (state_estimation_dynamic_event_expected) {
+    q = 2000.0f;
+  } else {
+    q = 500.0f;
+  }
+  /* Acquire lock */
+//   chBSemWait(&kalman_bsem);
 
-    /* Set the process noise variance according to whether we expect
-     * something to change soon. These numbers are more or less guesses.
-     */
-    if(state_estimation_dynamic_event_expected) {
-        q = 2000.0f;
-    } else {
-        q = 500.0f;
-    }
+  /* Find elapsed time */
+//   dt = (float)(ST2US(chVTTimeElapsedSinceX(t_clk))) / 1e6f;
+//   t_clk = chVTGetSystemTimeX();
 
-    /* Acquire lock */
-    chBSemWait(&kalman_bsem);
 
-    /* Find elapsed time */
-    dt = (float)(ST2US(chVTTimeElapsedSinceX(t_clk))) / 1e6f;
-    t_clk = chVTGetSystemTimeX();
+  dt2 = dt * dt;
+  dt3 = dt * dt2;
+  dt4 = dt * dt3;
+  dt5 = dt * dt4;
+  dt6 = dt * dt5;
+  dt2_2 = dt2 / 2.0f;
+  /* Update state
+   * x_{k|k-1} = F_k x_{k-1|k-1}
+   *           = [x_0 + dt x_1 + dt²/2 x_2]
+   *             [         x_1 + dt    x_2]
+   *             [                     x_2]
+   */
+  x[0] += dt * x[1] + dt2_2 * x[2];
+  x[1] += dt * x[2];
+  /* Update covariance
+   * P_{k|k-1} = F_k P_{k-1|k-1} F'_k + Q
+   * Uses F.P.F' from above. We'll add Q later, this is just the FPF'.
+   * Conveniently the form means we can update each element in-place.
+   */
+  p[0][0] += (dt * p[1][0] + dt2_2 * p[2][0] +
+              dt * (p[0][1] + dt * p[1][1] * dt2_2 * p[2][1]) +
+              dt2_2 * (p[0][2] + dt * p[1][2] + dt2_2 * p[2][2]));
+  p[0][1] += (dt * p[1][1] + dt2_2 * p[2][1] +
+              dt * (p[0][2] + dt * p[1][2] + dt2_2 * p[2][2]));
+  p[0][2] += (dt * p[1][2] + dt2_2 * p[2][2]);
 
-    dt2 = dt * dt;
-    dt3 = dt * dt2;
-    dt4 = dt * dt3;
-    dt5 = dt * dt4;
-    dt6 = dt * dt5;
-    dt2_2 = dt2 / 2.0f;
+  p[1][0] += (dt * p[2][0] + dt * (p[1][1] + dt * p[2][1]) +
+              dt2_2 * (p[1][2] + dt * p[2][2]));
+  p[1][1] += (dt * p[2][1] + dt * (p[1][2] + dt * p[2][2]));
+  p[1][2] += (dt * p[2][2]);
 
-    /* Update state
-     * x_{k|k-1} = F_k x_{k-1|k-1}
-     *           = [x_0 + dt x_1 + dt²/2 x_2]
-     *             [         x_1 + dt    x_2]
-     *             [                     x_2]
-     */
-    x[0] += dt * x[1] + dt2_2 * x[2];
-    x[1] += dt * x[2];
-
-    /* Update covariance
-     * P_{k|k-1} = F_k P_{k-1|k-1} F'_k + Q
-     * Uses F.P.F' from above. We'll add Q later, this is just the FPF'.
-     * Conveniently the form means we can update each element in-place.
-     */
-    p[0][0] += (   dt    *  p[1][0] + dt2_2 * p[2][0]
-                 + dt    * (p[0][1] + dt    * p[1][1] * dt2_2 * p[2][1])
-                 + dt2_2 * (p[0][2] + dt    * p[1][2] + dt2_2 * p[2][2]));
-    p[0][1] += (   dt    *  p[1][1] + dt2_2 * p[2][1]
-                 + dt    * (p[0][2] + dt    * p[1][2] + dt2_2 * p[2][2]));
-    p[0][2] += (   dt    *  p[1][2] + dt2_2 * p[2][2]);
-
-    p[1][0] += (   dt    *  p[2][0]
-                 + dt    * (p[1][1] + dt    * p[2][1])
-                 + dt2_2 * (p[1][2] + dt    * p[2][2]));
-    p[1][1] += (   dt    *  p[2][1]
-                 + dt    * (p[1][2] + dt    * p[2][2]));
-    p[1][2] += (   dt    *  p[2][2]);
-
-    p[2][0] += (   dt    *  p[2][1] + dt2_2 * p[2][2]);
-    p[2][1] += (   dt    *  p[2][2]);
-
-    /* Add process noise to matrix above.
-     * P_{k|k-1} += Q
-     */
-    p[0][0] += q * dt6 / 36.0f;
-    p[0][1] += q * dt5 / 12.0f;
-    p[0][2] += q * dt4 /  6.0f;
-    p[1][0] += q * dt5 / 12.0f;
-    p[1][1] += q * dt4 /  4.0f;
-    p[1][2] += q * dt3 /  2.0f;
-    p[2][0] += q * dt4 /  6.0f;
-    p[2][1] += q * dt3 /  2.0f;
-    p[2][2] += q * dt2 /  1.0f;
-
-    /* Copy state to return struct */
-    x_out.h = x[0];
-    x_out.v = x[1];
-    x_out.a = x[2];
-
-    /* Release lock */
-    chBSemSignal(&kalman_bsem);
-
-    /* Transmit the newly predicted state and variances over CAN */
-    // m3can_send_f32(CAN_MSG_ID_SE_T_H, dt, x[0], 2);
-    // m3can_send_f32(CAN_MSG_ID_SE_V_A, x[1], x[2], 2);
-    // m3can_send_f32(CAN_MSG_ID_SE_VAR_H, p[0][0], 0.0f, 1);
-    // m3can_send_f32(CAN_MSG_ID_SE_VAR_V_A, p[1][1], p[2][2], 2);
-
-    status_set_ok(COMPONENT_SE);
-
-    return x_out;
+  p[2][0] += (dt * p[2][1] + dt2_2 * p[2][2]);
+  p[2][1] += (dt * p[2][2]);
+  /* Add process noise to matrix above.
+   * P_{k|k-1} += Q
+   */
+  p[0][0] += q * dt6 / 36.0f;
+  p[0][1] += q * dt5 / 12.0f;
+  p[0][2] += q * dt4 / 6.0f;
+  p[1][0] += q * dt5 / 12.0f;
+  p[1][1] += q * dt4 / 4.0f;
+  p[1][2] += q * dt3 / 2.0f;
+  p[2][0] += q * dt4 / 6.0f;
+  p[2][1] += q * dt3 / 2.0f;
+  p[2][2] += q * dt2 / 1.0f;
+  /* Copy state to return struct */
+  x_out.h = x[0];
+  x_out.v = x[1];
+  x_out.a = x[2];
+  /* Release lock */
+//   chBSemSignal(&kalman_bsem);
+  /* Transmit the newly predicted state and variances over CAN */
+  // m3can_send_f32(CAN_MSG_ID_SE_T_H, dt, x[0], 2);
+  // m3can_send_f32(CAN_MSG_ID_SE_V_A, x[1], x[2], 2);
+  // m3can_send_f32(CAN_MSG_ID_SE_VAR_H, p[0][0], 0.0f, 1);
+  // m3can_send_f32(CAN_MSG_ID_SE_VAR_V_A, p[1][1], p[2][2], 2);
+  status_set_ok(COMPONENT_SE);
+  return x_out;
 }
 
 /*
  * Initialises the state estimation's shared variables.
  */
-void state_estimation_init()
-{
-    status_set_init(COMPONENT_SE);
-    state_estimation_trust_barometer = true;
-    state_estimation_dynamic_event_expected = false;
-    t_clk = chVTGetSystemTime();
-    chBSemObjectInit(&kalman_bsem, false);
+void state_estimation_init(void) {
+  status_set_init(COMPONENT_SE);
+  state_estimation_trust_barometer = true;
+  state_estimation_dynamic_event_expected = false;
+//   t_clk = chVTGetSystemTime();
+//   chBSemObjectInit(&kalman_bsem, false);
 }
 
 /* We run a Kalman update step with a new pressure reading.
@@ -266,93 +253,80 @@ void state_estimation_init()
  *           [P10 - K1 P00    P11 - K1 P01    P12 - K1 P02]
  *           [P20 - K2 P00    P21 - K2 P01    P22 - K2 P02]
  */
-void state_estimation_new_pressure(float pressure, float rms)
-{
-    float y, r, s_inv, k[3];
-    float h, hp, hm;
-
-    /* Discard data when mission control believes we are transonic. */
-    if(!state_estimation_trust_barometer)
-        return;
-
-    /* Convert pressure reading into an altitude.
-     * Run the same conversion for pressure ± sensor resolution to get an idea
-     * of the current noise variance in altitude terms for the filter.
-     */
-    h = state_estimation_pressure_to_altitude(pressure);
-    hp = state_estimation_pressure_to_altitude(pressure + rms);
-    hm = state_estimation_pressure_to_altitude(pressure - rms);
-    r = (hm - hp) * (hm - hp);
-
-    /* If there was an error (couldn't find suitable altitude band) for this
-     * pressure, just don't use it. It's probably wrong. */
-    if(h == -9999.0f || hp == -9999.0f || hm == -9999.0f) {
-        status_set_error(COMPONENT_SE, ERROR_SE_PRESSURE);
-        return;
-    }
-
-    /* Acquire lock */
-    chBSemWait(&kalman_bsem);
-
-    /* Measurement residual */
-    y = h - x[0];
-
-    /* Precision */
-    s_inv = 1.0f / (p[0][0] + r);
-
-    /* Compute optimal Kalman gains */
-    k[0] = p[0][0] * s_inv;
-    k[1] = p[1][0] * s_inv;
-    k[2] = p[2][0] * s_inv;
-
-    /* New state after measurement */
-    x[0] += k[0] * y;
-    x[1] += k[1] * y;
-    x[2] += k[2] * y;
-
-    /* Update P matrix post-measurement */
-    p[0][0] -= k[0] * p[0][0];
-    p[0][1] -= k[0] * p[0][1];
-    p[0][2] -= k[0] * p[0][2];
-    p[1][0] -= k[1] * p[0][0];
-    p[1][1] -= k[1] * p[0][1];
-    p[1][2] -= k[1] * p[0][2];
-    p[2][0] -= k[2] * p[0][0];
-    p[2][1] -= k[2] * p[0][1];
-    p[2][2] -= k[2] * p[0][2];
-
-    /* Release lock */
-    chBSemSignal(&kalman_bsem);
+void state_estimation_new_pressure(float pressure, float rms) {
+  float y, r, s_inv, k[3];
+  float h, hp, hm;
+  /* Discard data when mission control believes we are transonic. */
+  if (!state_estimation_trust_barometer)
+    return;
+  /* Convert pressure reading into an altitude.
+   * Run the same conversion for pressure ± sensor resolution to get an idea
+   * of the current noise variance in altitude terms for the filter.
+   */
+  h = state_estimation_pressure_to_altitude(pressure);
+  hp = state_estimation_pressure_to_altitude(pressure + rms);
+  hm = state_estimation_pressure_to_altitude(pressure - rms);
+  r = (hm - hp) * (hm - hp);
+  /* If there was an error (couldn't find suitable altitude band) for this
+   * pressure, just don't use it. It's probably wrong. */
+  if (h == -9999.0f || hp == -9999.0f || hm == -9999.0f) {
+    printf("Couldn't find suitable altitude band\n");
+    status_set_error(COMPONENT_SE, ERROR_SE_PRESSURE);
+    return;
+  }
+  /* Acquire lock */
+  // chBSemWait(&kalman_bsem);
+  /* Measurement residual */
+  y = h - x[0];
+  /* Precision */
+  s_inv = 1.0f / (p[0][0] + r);
+  /* Compute optimal Kalman gains */
+  k[0] = p[0][0] * s_inv;
+  k[1] = p[1][0] * s_inv;
+  k[2] = p[2][0] * s_inv;
+  /* New state after measurement */
+  x[0] += k[0] * y;
+  x[1] += k[1] * y;
+  x[2] += k[2] * y;
+  /* Update P matrix post-measurement */
+  p[0][0] -= k[0] * p[0][0];
+  p[0][1] -= k[0] * p[0][1];
+  p[0][2] -= k[0] * p[0][2];
+  p[1][0] -= k[1] * p[0][0];
+  p[1][1] -= k[1] * p[0][1];
+  p[1][2] -= k[1] * p[0][2];
+  p[2][0] -= k[2] * p[0][0];
+  p[2][1] -= k[2] * p[0][1];
+  p[2][2] -= k[2] * p[0][2];
+  /* Release lock */
+  // chBSemSignal(&kalman_bsem);
 }
 
-static float state_estimation_pressure_to_altitude(float pressure)
-{
-    int b;
-    /* If the pressure is below the model's ground level, we can
-     * extrapolate into the ground instead.
-     */
-    if(pressure > Pb[0]) {
-        return state_estimation_p2a_nonzero_lapse(pressure, 0);
+static float state_estimation_pressure_to_altitude(float pressure) {
+  int b;
+  /* If the pressure is below the model's ground level, we can
+   * extrapolate into the ground instead.
+   */
+  if (pressure > Pb[0]) {
+    return state_estimation_p2a_nonzero_lapse(pressure, 0);
+  }
+  /* For each level of the US Standard Atmosphere 1976, check if the pressure
+   * is inside that level, and use the appropriate conversion based on lapse
+   * rate at that level.
+   */
+  for (b = 0; b < 6; b++) {
+    if (pressure <= Pb[b] && pressure > Pb[b + 1]) {
+      if (Lb[b] == 0.0f) {
+        return state_estimation_p2a_zero_lapse(pressure, b);
+      } else {
+        return state_estimation_p2a_nonzero_lapse(pressure, b);
+      }
     }
-
-    /* For each level of the US Standard Atmosphere 1976, check if the pressure
-     * is inside that level, and use the appropriate conversion based on lapse
-     * rate at that level.
-     */
-    for(b = 0; b < 6; b++) {
-        if(pressure <= Pb[b] && pressure > Pb[b+1]) {
-            if(Lb[b] == 0.0f) {
-                return state_estimation_p2a_zero_lapse(pressure, b);
-            } else {
-                return state_estimation_p2a_nonzero_lapse(pressure, b);
-            }
-        }
-    }
-
-    /* If no levels matched, something is wrong, returning -9999f will cause
-     * this pressure value to be ignored.
-     */
-    return -9999.0f;
+  }
+  /* If no levels matched, something is wrong, returning -9999f will cause
+   * this pressure value to be ignored.
+   */
+  return -9999.0f;
 }
 
 /*
@@ -360,27 +334,23 @@ static float state_estimation_pressure_to_altitude(float pressure)
  * Rearranges the standard equation for non-zero-lapse regions,
  * P = Pb (Tb / (Tb + Lb(h - hb)))^(M g0 / R* Lb)
  */
-static float state_estimation_p2a_nonzero_lapse(float pressure, int b)
-{
-    const float lb = Lb[b];
-    const float hb = Hb[b];
-    const float pb = Pb[b];
-    const float tb = Tb[b];
-
-    return hb + tb/lb * (powf(pressure/pb, (-Rs*lb)/(g0*M)) - 1.0f);
+static float state_estimation_p2a_nonzero_lapse(float pressure, int b) {
+  const float lb = Lb[b];
+  const float hb = Hb[b];
+  const float pb = Pb[b];
+  const float tb = Tb[b];
+  return hb + tb / lb * (powf(pressure / pb, (-Rs * lb) / (g0 * M)) - 1.0f);
 }
 
 /* Convert a pressure and an atmospheric level b into an altitude.
  * Reverses the standard equation for zero-lapse regions,
  * P = Pb exp( -g0 M (h-hb) / R* Tb)
  */
-static float state_estimation_p2a_zero_lapse(float pressure, int b)
-{
-    const float hb = Hb[b];
-    const float pb = Pb[b];
-    const float tb = Tb[b];
-
-    return hb + (Rs * tb)/(g0 * M) * (logf(pressure / pb));
+static float state_estimation_p2a_zero_lapse(float pressure, int b) {
+  const float hb = Hb[b];
+  const float pb = Pb[b];
+  const float tb = Tb[b];
+  return hb + (Rs * tb) / (g0 * M) * (logf(pressure / pb));
 }
 
 /* Update the state estimate with a new accelerometer reading.
@@ -390,46 +360,39 @@ static float state_estimation_p2a_zero_lapse(float pressure, int b)
  * close to 1G, we'll assume we're just not upright any more and return 0
  * acceleration with a larger variance.
  */
-void state_estimation_new_accels(float accels[3], float max, float rms)
-{
-    float accel = 0.0f;
-
-    /* Get "up" acceleration from configuration. */
-    if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_X) {
-        accel = accels[0];
-    } else if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_NX) {
-        accel = -accels[0];
-    } else if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_Y) {
-        accel = accels[1];
-    } else if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_NY) {
-        accel = -accels[1];
-    } else if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_Z) {
-        accel = accels[2];
-    } else if(config.profile.accel_axis == CONFIG_ACCEL_AXIS_NZ) {
-        accel = -accels[2];
-    } else {
-        status_set_error(COMPONENT_ACCEL, ERROR_ACCEL_AXIS);
-    }
-
-    float overall_accel = sqrtf(accels[0] * accels[0] +
-                                accels[1] * accels[1] +
-                                accels[2] * accels[2]);
-
-    if(fabsf(overall_accel - 9.80665f) < 1.0f) {
-        /* Check if overall acceleration is near 1G, and treat as zero if so */
-        accel = 0.0f;
-        rms = 9.80665f;
-    } else if(fabsf(accel) > max) {
-        /* Do not use for state estimation if reading is above sensor max. */
-        return;
-    } else {
-        /* Subtract 1G from the up acceleration to remove effect of gravity */
-        accel -= 9.80665f;
-    }
-
-    state_estimation_update_accel(accel, rms*rms);
+void state_estimation_new_accels(float accels[3], float max, float rms) {
+  float accel = 0.0f;
+  /* Get "up" acceleration from configuration. */
+  if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_X) {
+    accel = accels[0];
+  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NX) {
+    accel = -accels[0];
+  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Y) {
+    accel = accels[1];
+  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NY) {
+    accel = -accels[1];
+  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Z) {
+    accel = accels[2];
+  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NZ) {
+    accel = -accels[2];
+  } else {
+    status_set_error(COMPONENT_ACCEL, ERROR_ACCEL_AXIS);
+  }
+  float overall_accel = sqrtf(accels[0] * accels[0] + accels[1] * accels[1] +
+                              accels[2] * accels[2]);
+  if (fabsf(overall_accel - 9.80665f) < 1.0f) {
+    /* Check if overall acceleration is near 1G, and treat as zero if so */
+    accel = 0.0f;
+    rms = 9.80665f;
+  } else if (fabsf(accel) > max) {
+    /* Do not use for state estimation if reading is above sensor max. */
+    return;
+  } else {
+    /* Subtract 1G from the up acceleration to remove effect of gravity */
+    accel -= 9.80665f;
+  }
+  state_estimation_update_accel(accel, rms * rms);
 }
-
 
 /* Run the Kalman update for a single acceleration value.
  * Called internally from the new_accel functions after
@@ -454,41 +417,32 @@ void state_estimation_new_accels(float accels[3], float max, float rms)
  *           [P10 - K1 P20    P11 - K1 P21    P12 - K1 P22]
  *           [P20 - K2 P20    P21 - K2 P21    P22 - K2 P22]
  */
-static void state_estimation_update_accel(float a, float r)
-{
-    float y, s_inv, k[3];
-
-    /* Acquire lock */
-    chBSemWait(&kalman_bsem);
-
-    /* Measurement residual */
-    y = a - x[2];
-
-    /* Precision */
-    s_inv = 1.0f / (p[2][2] + r);
-
-    /* Compute optimal Kalman gains */
-    k[0] = p[0][2] * s_inv;
-    k[1] = p[1][2] * s_inv;
-    k[2] = p[2][2] * s_inv;
-
-    /* Update state */
-    x[0] += k[0] * y;
-    x[1] += k[1] * y;
-    x[2] += k[2] * y;
-
-    /* Update covariance */
-    p[0][0] -= k[0] * p[2][0];
-    p[0][1] -= k[0] * p[2][1];
-    p[0][2] -= k[0] * p[2][2];
-    p[1][0] -= k[1] * p[2][0];
-    p[1][1] -= k[1] * p[2][1];
-    p[1][2] -= k[1] * p[2][2];
-    p[2][0] -= k[2] * p[2][0];
-    p[2][1] -= k[2] * p[2][1];
-    p[2][2] -= k[2] * p[2][2];
-
-    /* Release lock */
-    chBSemSignal(&kalman_bsem);
+static void state_estimation_update_accel(float a, float r) {
+  float y, s_inv, k[3];
+  /* Acquire lock */
+//   chBSemWait(&kalman_bsem);
+  /* Measurement residual */
+  y = a - x[2];
+  /* Precision */
+  s_inv = 1.0f / (p[2][2] + r);
+  /* Compute optimal Kalman gains */
+  k[0] = p[0][2] * s_inv;
+  k[1] = p[1][2] * s_inv;
+  k[2] = p[2][2] * s_inv;
+  /* Update state */
+  x[0] += k[0] * y;
+  x[1] += k[1] * y;
+  x[2] += k[2] * y;
+  /* Update covariance */
+  p[0][0] -= k[0] * p[2][0];
+  p[0][1] -= k[0] * p[2][1];
+  p[0][2] -= k[0] * p[2][2];
+  p[1][0] -= k[1] * p[2][0];
+  p[1][1] -= k[1] * p[2][1];
+  p[1][2] -= k[1] * p[2][2];
+  p[2][0] -= k[2] * p[2][0];
+  p[2][1] -= k[2] * p[2][1];
+  p[2][2] -= k[2] * p[2][2];
+  /* Release lock */
+//   chBSemSignal(&kalman_bsem);
 }
-

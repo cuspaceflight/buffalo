@@ -3,6 +3,7 @@
 #define STATE_ESTIMATION_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct { float h; float v; float a; } state_estimate_t;
 
@@ -27,7 +28,7 @@ void state_estimation_new_pressure(float pressure, float rms);
 void state_estimation_new_accels(float accels[3], float max, float rms);
 
 /* Compute and return the latest state estimate */
-state_estimate_t state_estimation_get_state(void);
+state_estimate_t state_estimation_get_state(float dt);
 
 /* Initialise state estimation. Must be called before
  * update or prediction steps above are called. */
