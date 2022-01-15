@@ -10,8 +10,13 @@ and dummy data.
 
 ## Building
 
-`cmake .`
-`make`
+```
+# From root directory
+# Generate build system
+cmake .
+# Build
+make
+```
 
 ---
 Copyright (C) 2021 H. E. Franks, B. M. Andrew
