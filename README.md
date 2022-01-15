@@ -11,7 +11,10 @@ and dummy data.
 ## Building
 
 ```
+# From root directory
+# Generate build system
 cmake .
+# Build
 make
 ```
 
