@@ -37,3 +37,7 @@ _deps
 **/*.csv
 **/*.bin
 bin/*
+
+# ignore build files
+*.so
+
