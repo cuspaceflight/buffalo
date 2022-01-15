@@ -1,3 +1,9 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                            FLIGHT COMPUTER MOCKUP                            *
+*                                                                              *
+*                  COPYRIGHT (C) 2021 H.E. FRANKS, B.M. ANDREW                 *
+*                       CAMBRIDGE UNIVERSITY SPACEFLIGHT                       *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdio.h>
 
@@ -17,6 +23,5 @@ int main(int argc, char **argv) {
     state_estimation_new_pressure(bs[1], 0.01 * bs[1]);
     printf("%f %f %f\n", se.h, se.v, se.a);
   }
-
   return 0;
 }

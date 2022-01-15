@@ -2,7 +2,7 @@
 *                                    BUFFALO                                   *
 *                       FLIGHT COMPUTER SIMULATION SYSTEM                      *
 *                                                                              *
-*                         COPYRIGHT (C) 2021 H.E. FRANKS                       *
+*                  COPYRIGHT (C) 2021 H.E. FRANKS, B.M. ANDREW                 *
 *                        CAMBRIDGE UNIVERSITY SPACEFLIGHT                      *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

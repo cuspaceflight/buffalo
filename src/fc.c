@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *                            FLIGHT COMPUTER MOCKUP                            *
 *                                                                              *
-*                       COPYRIGHT (C)  2021 H.E. Franks                        *
+*                  COPYRIGHT (C) 2021 H.E. FRANKS, B.M. ANDREW                 *
 *                       CAMBRIDGE UNIVERSITY SPACEFLIGHT                       *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
