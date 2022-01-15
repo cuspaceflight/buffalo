@@ -10,8 +10,10 @@ and dummy data.
 
 ## Building
 
-`cmake .`
-`make`
+```
+cmake .
+make
+```
 
 ---
 Copyright (C) 2021 H. E. Franks, B. M. Andrew
