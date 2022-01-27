@@ -263,6 +263,7 @@ void state_estimation_new_pressure(float pressure, float rms) {
    * Run the same conversion for pressure ± sensor resolution to get an idea
    * of the current noise variance in altitude terms for the filter.
    */
+
   h = state_estimation_pressure_to_altitude(pressure);
   hp = state_estimation_pressure_to_altitude(pressure + rms);
   hm = state_estimation_pressure_to_altitude(pressure - rms);
@@ -360,37 +361,45 @@ static float state_estimation_p2a_zero_lapse(float pressure, int b) {
  * close to 1G, we'll assume we're just not upright any more and return 0
  * acceleration with a larger variance.
  */
-void state_estimation_new_accels(float accels[3], float max, float rms) {
-  float accel = 0.0f;
-  /* Get "up" acceleration from configuration. */
-  if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_X) {
-    accel = accels[0];
-  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NX) {
-    accel = -accels[0];
-  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Y) {
-    accel = accels[1];
-  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NY) {
-    accel = -accels[1];
-  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Z) {
-    accel = accels[2];
-  } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NZ) {
-    accel = -accels[2];
-  } else {
-    status_set_error(COMPONENT_ACCEL, ERROR_ACCEL_AXIS);
-  }
-  float overall_accel = sqrtf(accels[0] * accels[0] + accels[1] * accels[1] +
-                              accels[2] * accels[2]);
-  if (fabsf(overall_accel - 9.80665f) < 1.0f) {
-    /* Check if overall acceleration is near 1G, and treat as zero if so */
-    accel = 0.0f;
-    rms = 9.80665f;
-  } else if (fabsf(accel) > max) {
-    /* Do not use for state estimation if reading is above sensor max. */
-    return;
-  } else {
-    /* Subtract 1G from the up acceleration to remove effect of gravity */
-    accel -= 9.80665f;
-  }
+// void state_estimation_new_accels(float accels[3], float max, float rms) {
+//   float accel = 0.0f;
+//   /* Get "up" acceleration from configuration. */
+//   if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_X) {
+//     accel = accels[0];
+//   } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NX) {
+//     accel = -accels[0];
+//   } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Y) {
+//     accel = accels[1];
+//   } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NY) {
+//     accel = -accels[1];
+//   } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_Z) {
+//     accel = accels[2];
+//   } else if (config.profile.accel_axis == CONFIG_ACCEL_AXIS_NZ) {
+//     accel = -accels[2];
+//   } else {
+//     status_set_error(COMPONENT_ACCEL, ERROR_ACCEL_AXIS);
+//   }
+//   float overall_accel = sqrtf(accels[0] * accels[0] + accels[1] * accels[1] +
+//                               accels[2] * accels[2]);
+//   if (fabsf(overall_accel - 9.80665f) < 1.0f) {
+//     /* Check if overall acceleration is near 1G, and treat as zero if so */
+//     accel = 0.0f;
+//     rms = 9.80665f;
+//   } else if (fabsf(accel) > max) {
+//     /* Do not use for state estimation if reading is above sensor max. */
+//     return;
+//   } else {
+//     /* Subtract 1G from the up acceleration to remove effect of gravity */
+//     accel -= 9.80665f;
+//   }
+//   state_estimation_update_accel(accel, rms * rms);
+// }
+
+
+/* Horrifically simplified from above, needs to be verified by an engineer
+ */
+void state_estimation_new_accel(float accel, float rms) {
+  accel -= 9.80665f;
   state_estimation_update_accel(accel, rms * rms);
 }
 

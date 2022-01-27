@@ -25,7 +25,9 @@ void state_estimation_new_pressure(float pressure, float rms);
 
 /* Update with new accelerometer readings (in m/s/s on x, y, z) and
  * associated maximum value and RMS noise */
-void state_estimation_new_accels(float accels[3], float max, float rms);
+// void state_estimation_new_accels(float accels[3], float max, float rms);
+
+void state_estimation_new_accel(float accel, float rms);
 
 /* Compute and return the latest state estimate */
 state_estimate_t state_estimation_get_state(float dt);
