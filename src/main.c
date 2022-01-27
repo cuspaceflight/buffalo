@@ -21,7 +21,7 @@ typedef struct {
   float value;
 } reading_t;
 
-size_t read_logfile(const char *path, reading_t *buffer) {
+size_t read_logfile(const char *path, reading_t **buffer) {
   FILE *fp;
   size_t size;
   fp = fopen(path, "rb");
@@ -33,12 +33,11 @@ size_t read_logfile(const char *path, reading_t *buffer) {
   fseek(fp, 0, SEEK_END);
   size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  buffer = malloc(size);
+  *buffer = malloc(size);
   // Read data into the buffer
-  if (fread(buffer, sizeof(char), size, fp) != size) {
+  if (fread(*buffer, sizeof(char), size, fp) != size) {
     printf("Error reading file %s \n", path);
     fclose(fp);
-    free(buffer);
     return 0;
   }
   fclose(fp);
@@ -47,16 +46,29 @@ size_t read_logfile(const char *path, reading_t *buffer) {
 
 int main(int argc, char **argv) {
   reading_t *readings;
-  size_t n_readings = read_logfile(FILE_PATH, readings);
+  size_t n_readings = read_logfile(FILE_PATH, &readings);
 
-  // state_estimate_t se;
-  // state_estimation_init();
-  // for (int i = 1; i < 1; i++) {
-  //   se = state_estimation_get_state(ts[i] - ts[i - 1]);
-  //   state_estimation_new_pressure(bs[1], 0.01 * bs[1]);
-  //   printf("%f %f %f\n", se.h, se.v, se.a);
-  // }
+  state_estimate_t se;
+  state_estimation_init();
+  for (int i = 1; i < n_readings; i++) {
+    reading_t r = readings[i];
+    reading_t r_prev = readings[i - 1];
+    if (r.type == BARO) {
+      se = state_estimation_get_state(r.time - r_prev.time);
+      state_estimation_new_pressure(r.value, 0.01 * r.value);
+      printf("%f %f %f %f\n", r.time, se.h, se.v, se.a);
+    } else if (r.type == ACCEL) {
+      se = state_estimation_get_state(r.time - r_prev.time);
+      state_estimation_new_accel(r.value, 0.01 * r.value);
+      printf("%f %f %f %f\n", r.time, se.h, se.v, se.a);
+    } else {
+      printf("UH OH\n");
+      return 1;
+    }
+  }
 
-  free(readings);
+  if (readings != NULL) {
+    free(readings);
+  }
   return 0;
 }
