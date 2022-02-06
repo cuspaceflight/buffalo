@@ -66,7 +66,7 @@ def read():
   i = 0
   last_timestamp = 0
   t_correction = 0
-  with open("/home/ben/projects/flight_log_archive/2014-09-14_MidlandSkies/log_00021.bin", "rb") as f:
+  with open("flight_log_archive/2014-09-14_MidlandSkies/log_00021.bin", "rb") as f:
     while True:
       try:
         packet = f.read(16)
@@ -77,7 +77,7 @@ def read():
       i += 1
       if i % 500000 == 0:
         print("{:.2f}%".format(100 * i / 4804608.0))
-      
+
       timestamp = struct.unpack("I", packet[:4])[0]
       mode, channel, _, _ = struct.unpack("BBBB", packet[4:8])
       if timestamp < last_timestamp:
