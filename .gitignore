@@ -18,6 +18,9 @@ dist
 # Local History for Visual Studio Code
 .history/
 
+# clangd LSP files
+.cache/
+
 ## CMake
 
 CMakeLists.txt.user
@@ -41,3 +44,5 @@ bin/*
 # ignore build files
 *.so
 
+# flight logs
+/flight_log_archive

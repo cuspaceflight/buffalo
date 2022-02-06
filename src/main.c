@@ -11,7 +11,7 @@
 
 #include "state_estimation.h"
 
-#define FILE_PATH "/home/ben/projects/buffalo/flight_log/combined.bin"
+#define FILE_PATH "flight_log/combined.bin"
 
 enum Reading { BARO, ACCEL };
 
