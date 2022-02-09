@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-from math import log
+from math import log, sqrt
 
 data = np.load(sys.argv[1])
 
@@ -75,17 +75,24 @@ buffalo.load_data(sensor_data)
 
 t = []
 h = []
+h_min = []
+h_max = []
 
 for dpoint in buffalo.simulate():
     t.append(dpoint[0])
     h.append(dpoint[1])
+    s = 2 * sqrt(dpoint[2])
+    h_min.append(dpoint[1] - s)
+    h_max.append(dpoint[1] + s)
 
 atmos = USStdAtmos()
 h_baro = [atmos.p2a(p) for p in data['pressure_v']]
 
-plt.plot(data['pressure_t'], h_baro, label="US Std. Atmosphere Data")
+plt.plot(data['pressure_t'], h_baro, label="US Std. Atmosphere Data", c='C0')
 
-plt.plot(t, h, label="State Estimate")
+plt.plot(t, h, label="State Estimate", c='C1')
+plt.plot(t, h_min, c='C1', ls='--')
+plt.plot(t, h_max, c='C1', ls='--')
 
 plt.legend()
 plt.tight_layout()
