@@ -44,5 +44,8 @@ bin/*
 # ignore build files
 *.so
 
+# ignore vim swapfiles
+*.swp
+
 # flight logs
 /flight_log_archive
