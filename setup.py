@@ -7,7 +7,8 @@ buffalo = Extension(
     "buffalo",
     sources=[
         "src/state_estimation.c",
-        "src/buffalo.c"
+        "src/buffalo.c",
+        "src/atmosphere.c"
     ],
     include_dirs=["include"],
     extra_compile_args=["-lm"]

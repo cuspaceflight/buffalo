@@ -62,10 +62,8 @@ static PyObject* loadData(PyObject* self, PyObject* args)
 
         dtype = strcmp(data_type, "BARO") ? ACCEL : BARO;
 
-        t = (float) PyFloat_AsDouble(PyObject_GetAttrString(
-                                            item, "time"));
-        v = (float) PyFloat_AsDouble(PyObject_GetAttrString(
-                                            item, "value"));
+        t = (float) PyFloat_AsDouble(PyObject_GetAttrString(item, "time"));
+        v = (float) PyFloat_AsDouble(PyObject_GetAttrString(item, "value"));
 
         sensor_data_t reading = {
             .data_type = dtype,
@@ -82,30 +80,28 @@ static PyObject* loadData(PyObject* self, PyObject* args)
 
 static PyObject* simulate(PyObject* self, PyObject* args)
 {
-    state_estimate_t se;
-    state_estimation_init();
+    output_t se;
 
     PyObject* output = PyList_New(0);
 
+    float prev_time = sensor_data[0].time;
+    float prev_print_time = 0;
+
     for (size_t i = 1; i < len_data; i++) {
         sensor_data_t current_reading = sensor_data[i];
-        float prev_time = sensor_data[i-1].time;
-        
-        se = state_estimation_get_state(current_reading.time -
-                                        prev_time);
+       
+        if (current_reading.data_type != BARO) continue;
+        se = state_estimation_tick(
+            current_reading.time - prev_time, current_reading.value, 250.0f);
+        prev_time = current_reading.time;
 
-        switch (current_reading.data_type) {
-            case BARO:
-                state_estimation_new_pressure(current_reading.value,
-                                              0.01 * current_reading.value);
-            case ACCEL:
-                state_estimation_new_accel(current_reading.value,
-                                           0.01 * current_reading.value);
+        if (current_reading.time - prev_print_time > 0.1) {
+            prev_print_time = current_reading.time;
+            if (PyList_Append(output, Py_BuildValue("ddd", current_reading.time,
+                                                    se.h, se.s)) == -1)
+                return NULL;
         }
-
-        if (PyList_Append(output, Py_BuildValue(
-            "ddd", current_reading.time, se.h, s)) == -1)
-            return NULL;
+        
     }
 
     return output;
