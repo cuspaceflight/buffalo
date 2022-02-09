@@ -1,8 +1,6 @@
-
 #include <stdio.h>
-
-#include "ch.h"
 #include <math.h>
+#include "ch.h"
 // #include "m3can.h"
 #include "config.h"
 #include "state_estimation.h"

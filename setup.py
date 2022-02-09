@@ -5,8 +5,12 @@ from glob import glob
 
 buffalo = Extension(
     "buffalo",
-    sources=glob("src/*.c"),
-    include_dirs=["include"]
+    sources=[
+        "src/state_estimation.c",
+        "src/buffalo.c"
+    ],
+    include_dirs=["include"],
+    extra_compile_args=["-lm"]
 )
 
 setup(
