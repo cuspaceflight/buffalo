@@ -24,6 +24,11 @@ size_t len_data;
 static PyObject* loadData(PyObject* self, PyObject* args)
 {
     PyObject* data;
+    PyObject* item;
+    char* data_type;
+    enum sensor_type dtype;
+    float t, v;
+
     if (!PyArg_ParseTuple(args, "O", &data)) {
         PyErr_SetString(PyExc_RuntimeError, "Error parsing list.");
         return NULL;
@@ -47,19 +52,20 @@ static PyObject* loadData(PyObject* self, PyObject* args)
 
     sensor_data = (sensor_data_t*) malloc(len_data * sizeof(sensor_data_t));
 
-    const char* baro_string = "BARO";
-
     for (size_t i = 0; i < len_data; i++) {
-        PyObject* item = PyList_GetItem(data, i);
-        PyObject* strobj = PyObject_GetAttrString(item, "data_type");
-        char* data_type = PyUnicode_AsUTF8String(strobj);
+        item = PyList_GetItem(data, i);
+
+        data_type = PyBytes_AsString(PyUnicode_AsUTF8String(
+            PyObject_GetAttrString(item, "data_type")));
         if (PyErr_Occurred() || PyErr_CheckSignals())
             return NULL; /* quit on ^C */
 
-        enum sensor_type dtype = strcmp(data_type, "BARO") ? ACCEL : BARO;
+        dtype = strcmp(data_type, "BARO") ? ACCEL : BARO;
 
-        float t = (float)PyFloat_AsDouble(PyObject_GetAttrString(item, "time"));
-        float v = (float)PyFloat_AsDouble(PyObject_GetAttrString(item, "value"));
+        t = (float) PyFloat_AsDouble(PyObject_GetAttrString(
+                                            item, "time"));
+        v = (float) PyFloat_AsDouble(PyObject_GetAttrString(
+                                            item, "value"));
 
         sensor_data_t reading = {
             .data_type = dtype,
@@ -98,7 +104,7 @@ static PyObject* simulate(PyObject* self, PyObject* args)
         }
 
         if (PyList_Append(output, Py_BuildValue(
-            "dd", current_reading.time, se.h)) == -1)
+            "ddd", current_reading.time, se.h, s)) == -1)
             return NULL;
     }
 

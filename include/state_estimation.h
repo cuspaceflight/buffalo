@@ -36,4 +36,6 @@ state_estimate_t state_estimation_get_state(float dt);
  * update or prediction steps above are called. */
 void state_estimation_init(void);
 
+float s;
+
 #endif

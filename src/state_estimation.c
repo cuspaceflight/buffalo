@@ -12,6 +12,7 @@
 static float x[3] = {0.0f, 0.0f, 0.0f};
 static float p[3][3] = {
     {250.0f, 0.0f, 0.0f}, {0.0f, 0.1f, 0.0f}, {0.0f, 0.0f, 0.1f}};
+float s;
 
 /* Used to compute dt for each prediction step. */
 static systime_t t_clk;
@@ -207,6 +208,7 @@ state_estimate_t state_estimation_get_state(float dt) {
   // m3can_send_f32(CAN_MSG_ID_SE_VAR_H, p[0][0], 0.0f, 1);
   // m3can_send_f32(CAN_MSG_ID_SE_VAR_V_A, p[1][1], p[2][2], 2);
   status_set_ok(COMPONENT_SE);
+  s = p[0][0];
   return x_out;
 }
 
