@@ -349,7 +349,7 @@ static float state_estimation_p2a_zero_lapse(float pressure, int b) {
   const float hb = Hb[b];
   const float pb = Pb[b];
   const float tb = Tb[b];
-  return hb + (Rs * tb) / (g0 * M) * (logf(pressure / pb));
+  return hb - (Rs * tb) / (g0 * M) * (logf(pressure / pb));
 }
 
 /* Update the state estimate with a new accelerometer reading.
