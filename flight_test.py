@@ -59,15 +59,11 @@ class SensorData:
 
 sensor_data = []
 
-for (t, a) in zip(data['accel_t'], data['accel_v']):
-    sensor_data.append(SensorData(
-        "ACCEL", t, a
-    ))
+#for (t, a) in zip(data['accel_t'], data['accel_v']):
+    #sensor_data.append(SensorData( "ACCEL", t, a ))
     
 for (t, b) in zip(data['pressure_t'], data['pressure_v']):
-    sensor_data.append(SensorData(
-        "BARO", t, b
-    ))
+    sensor_data.append(SensorData( "BARO", t, b ))
 
 sensor_data.sort(key=lambda x: x.time)
 
@@ -81,7 +77,7 @@ h_max = []
 for dpoint in buffalo.simulate():
     t.append(dpoint[0])
     h.append(dpoint[1])
-    s = 2 * sqrt(dpoint[2])
+    s = 2 * sqrt(abs(dpoint[2]))
     h_min.append(dpoint[1] - s)
     h_max.append(dpoint[1] + s)
 
