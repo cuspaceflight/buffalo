@@ -47,5 +47,3 @@ bin/*
 # ignore vim swapfiles
 *.swp
 
-# flight logs
-/flight_log_archive

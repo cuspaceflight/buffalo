@@ -1,0 +1,11 @@
+Archive of flight logs, especially the accelerometer (ADXL345) and
+barometer (MS5611) logs, for testing state estimation and mission control.
+
+Folders ideally contain a python script or other documentation to describe
+and extract the raw data log file, and the common format is a numpy compressed
+archive with members:
+
+accel_t         accelerometer reading times, in seconds since boot
+accel_v         accelerometer readings, up axially, in m/s/s, with gravity
+pressure_t      barometer reading times, in seconds since boot
+pressure_v      barometer readings, in Pa

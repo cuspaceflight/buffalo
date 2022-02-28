@@ -4,12 +4,8 @@ from platform import system
 from glob import glob
 
 buffalo = Extension(
-    "buffalo",
-    sources=[
-        "src/state_estimation.c",
-        "src/buffalo.c",
-        "src/atmosphere.c"
-    ],
+    "simulation.buffalo",
+    sources=glob("src/*.c"),
     include_dirs=["include"],
     extra_compile_args=["-lm"]
 )
@@ -19,7 +15,7 @@ setup(
     version="1.0",
     description="Flight computer simulation.",
     author="H. E. Franks",
-    author_email="henry@cusf.co.uk",
+    author_email="hef36@cam.ac.uk",
     ext_modules=[buffalo]
 )
 

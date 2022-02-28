@@ -6,8 +6,10 @@
 #include <stdbool.h>
 
 typedef struct { float h, v, a; } state_estimate_t;
-typedef struct { float h, s; } output_t;
+typedef struct { float h, s, a; } output_t;
+typedef struct { float value, rms; } gaussian_t;
 
-output_t state_estimation_tick(float dt, float pressure, float p_rms);
+output_t state_estimation_tick(float dt, gaussian_t* pressure,
+                                         gaussian_t* accel);
 
 #endif

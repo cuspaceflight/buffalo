@@ -1,5 +1,6 @@
-#include <math.h>
 #include "atmosphere.h"
+
+#include <math.h>
 
 /* Constants from the US Standard Atmosphere 1976 */
 static const float Rs = 8.31432f;
