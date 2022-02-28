@@ -12,10 +12,7 @@ and dummy data.
 
 ```
 # From root directory
-# Generate build system
-cmake .
-# Build
-make
+python setup.py build_ext --inplace
 ```
 
 ---
