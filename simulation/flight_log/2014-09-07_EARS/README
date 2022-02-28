@@ -1,0 +1,32 @@
+Early M2FC tests at EARS. Flying on Just-In-Time. y-axis was down.
+Possibly flying on Pro54 J430 or similar.
+
+See m2fc_channels.txt for a channel map.
+
+
+flights:
+00007: flight is about 370 to 430 seconds
+00011: flight is about 290 to 370 seconds
+
+
+Packet format was:
+u32 timestamp in 1/168e6 seconds
+u16 unused checksum
+u8 mode
+u8 channel
+8 bytes of data
+
+Mode meant:
+    Mode  Type      Format   Description
+    -------------------------------------------------------------
+     0    char*      s8       Eight byte string
+     1    int64_t    q        64 bit signed integer
+     2    uint64_t   Q        64 bit unsigned integer
+     3    int32_t    ii       Two 32bit signed integers
+     4    uint32_t   II       Two 32bit unsigned integers
+     5    int16_t    hhhh     Four 16bit signed integers
+     6    uint16_t   HHHH     Four 16bit unsigned integers
+     7    int8_t     bbbbbbbb Eight 8bit signed integers
+     8    uint8_t    BBBBBBBB Eight 8bit unsigned integers
+     9    float      ff       Two 32bit single precision floats
+     10   double     d        One 64bit double precision float

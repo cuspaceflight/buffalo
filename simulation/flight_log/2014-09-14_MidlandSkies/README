@@ -1,0 +1,18 @@
+M2FC qualification tests at Midland Skies. Flying on Just-In-Time.
+y-axis was down. Motor was Pro54 J430 or similar.
+
+same format as EARS flight earlier but with different channels
+
+flights:
+00021: flight from about 300 to 370 s
+00027: flight from about 400 to 470 s
+
+Packet format was:
+u32 timestamp at 1/168e6 seconds
+u8 metadata: 1=body 2=nose 3=m2r
+u8 channel
+u16 checksum
+8 bytes data in various format
+
+Relevant channels are 0x20 for low-g accel [i16 x y z 0] and 0x22 for barometer
+[i32 pressure, i32 temperature].
