@@ -1,13 +1,11 @@
 from setuptools import setup, Extension
-from platform import system
-
-from glob import glob
+from pathlib import Path
 
 buffalo = Extension(
     "simulation.buffalo",
-    sources=glob("src/*.c"),
+    sources=[path.as_posix() for path in Path("src").rglob("*.c")],
     include_dirs=["include"],
-    extra_compile_args=["-lm"]
+    extra_compile_args=["-lmg"]
 )
 
 setup(
