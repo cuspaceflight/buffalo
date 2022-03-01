@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include <Python.h>
+#include <stdio.h>
 
 #include "state_estimation.h"
 
@@ -67,6 +68,8 @@ static PyObject* loadData(PyObject* self, PyObject* args)
         if (PyErr_Occurred()) return NULL;
     }
 
+    state_estimation_init();
+
     Py_RETURN_NONE;
 }
 
@@ -80,6 +83,7 @@ static PyObject* simulate(PyObject* self, PyObject* args)
     float prev_print_time = 0;
 
     for (size_t i = 1; i < len_data; i++) {
+        if (PyErr_CheckSignals()) return NULL; /* exit on Ctrl-C */
         sensor_data_t current_reading = sensor_data[i];
        
         gaussian_t accel = { current_reading.accel, 0.3f };
