@@ -34,6 +34,7 @@ mat3* mat3_sub(const mat3* lhs, const mat3* rhs);
 mat3* mat3_mul(const mat3* lhs, const mat3* rhs);
 vec3* mat3_mlv(const mat3* lhs, const vec3* rhs);
 mat3* mat3_ml3(const mat3* A, const mat3* B, const mat3* C);
+mat3* mat3_opd(const vec3* A, const vec3* B);
 
 /* misc matrix operators */
 mat3* mat3_transpose(const mat3* M);

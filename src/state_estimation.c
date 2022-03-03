@@ -14,7 +14,7 @@ static mat3* F;
 
 void state_estimation_init()
 {
-    x = vec3_init(0.0f, 0.0f, 9.80665f);
+    x = vec3_init(0.0f, 0.0f, 0.0f);
 
     P = mat3_init(
         500.0f, 0.0f,   0.0f,
@@ -32,7 +32,7 @@ void state_estimation_init()
 
 void update_state_estimate(float dt, gaussian_t* accel)
 {
-    float a, dt2, dt3, dt4, dt2_2, q;
+    float a, dt2, dt3, dt4, dt2_2, dt2_6, q;
 
     /* compute measured acceleration from sensor data and offet */
     a = accel->value - x->data[2];
@@ -41,8 +41,11 @@ void update_state_estimate(float dt, gaussian_t* accel)
     dt3 = dt * dt2;
     dt4 = dt * dt3;
     dt2_2 = 0.5 * dt2;
+    dt2_6 = dt2_2 / 3;
 
     F->data[0][1] = dt;
+    F->data[0][2] = dt2_2;
+    F->data[1][2] = dt;
 
     /* Update state
      * x_{k|k-1} = F_k x_{k-1|k-1} + Bu
@@ -50,17 +53,10 @@ void update_state_estimate(float dt, gaussian_t* accel)
      */
 
     vec3* Ax = mat3_mlv(F, x);
-    vec3* Bu = vec3_init(
-        dt2_2 * a,
-           dt * a,
-                0
-    );
 
     vec3_cpy(x, Ax);
-    vec3_add_inplace(x, Bu);
 
     vec3_free(Ax);
-    vec3_free(Bu);
 
     /* Update covariance
      * P_{k|k-1} = F_k P_{k-1|k-1} F'_k + Q
@@ -74,7 +70,7 @@ void update_state_estimate(float dt, gaussian_t* accel)
     /* Set the process noise variance according to whether we expect
      * something to change soon. These numbers are more or less guesses.
      */
-    q = 500.0f; /* We previously checked for dynamic events and */
+    q = 1000.0f; /* We previously checked for dynamic events and */
                 /* upped the variance to 2000 here              */
                 /* (original value was 50.0f)                   */
 
@@ -82,16 +78,16 @@ void update_state_estimate(float dt, gaussian_t* accel)
      * P_{k|k-1} += Q
      * Q = B * B^T
      */
-    mat3* Q = mat3_init(
-        q * 0.25 * dt4, q * 0.50 * dt3, 0,
-        q * 0.50 * dt3, q *        dt2, 0,
-                     0,              0, accel->rms * accel->rms
-    );
+
+    vec3* w = vec3_init(dt2_6, dt2_2, dt);
+    vec3_mul_inplace(w, sqrt(q));
+    mat3* Q = mat3_opd(w, w);
 
     mat3_add_inplace(P_next, Q);
     mat3_cpy(P, P_next);
 
     mat3_free(FT);
+    vec3_free(w);
     mat3_free(Q);
     mat3_free(P_next);
 }
