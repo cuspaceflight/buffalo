@@ -155,6 +155,17 @@ mat3* mat3_ml3(const mat3* A, const mat3* B, const mat3* C)
     return ABC;
 }
 
+mat3* mat3_opd(const vec3* A, const vec3* B)
+{
+    mat3* ret = mat3_create();
+
+    for (size_t i = 0; i < 3; i++)
+        for (size_t j = 0; j < 3; j++)
+            ret->data[i][j] = A->data[j] * B->data[i];
+
+    return ret;
+}
+
 /* misc matrix operations */
 
 mat3* mat3_transpose(const mat3* M)
