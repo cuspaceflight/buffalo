@@ -25,8 +25,9 @@ static PyObject* loadData(PyObject* self, PyObject* args)
 {
     PyObject* data;
     PyObject* item;
+    PyObject* a;
     PyObject* p;
-    float t, a;
+    float t;
 
     if (!PyArg_ParseTuple(args, "O", &data)) {
         PyErr_SetString(PyExc_RuntimeError, "Error parsing list.");
@@ -55,12 +56,12 @@ static PyObject* loadData(PyObject* self, PyObject* args)
         item = PyList_GetItem(data, i);
 
         t = (float) PyFloat_AsDouble(PyObject_GetAttrString(item, "time"));
-        a = (float) PyFloat_AsDouble(PyObject_GetAttrString(item, "accel"));
+        a = PyObject_GetAttrString(item, "accel");
         p = PyObject_GetAttrString(item, "pressure");
 
         sensor_data_t reading = {
             .time     = t,
-            .accel    = a,
+            .accel    = (a == Py_None) ? NAN : PyFloat_AsDouble(a),
             .pressure = (p == Py_None) ? NAN : PyFloat_AsDouble(p)
         };
         sensor_data[i] = reading;

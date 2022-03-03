@@ -92,7 +92,7 @@ h_baro = [atmos.p2a(p) for p in data['pressure_v']]
 plt.plot(data['pressure_t'], h_baro, label="US Std. Atmosphere Data", c='C0')
 
 for (t, p) in zip(data['pressure_t'], data['pressure_v']):
-    sensor_data.append(SensorData( t, p, 0 ))
+    sensor_data.append(SensorData( t, p, None ))
 
 plot_data(sensor_data, "State Estimate (Baro Only)", 'C1')
 

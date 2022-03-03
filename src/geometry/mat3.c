@@ -155,15 +155,22 @@ mat3* mat3_ml3(const mat3* A, const mat3* B, const mat3* C)
     return ABC;
 }
 
-mat3* mat3_opd(const vec3* A, const vec3* B)
+mat3* mat3_opd(const vec3* lhs, const vec3* rhs)
 {
     mat3* ret = mat3_create();
 
     for (size_t i = 0; i < 3; i++)
         for (size_t j = 0; j < 3; j++)
-            ret->data[i][j] = A->data[j] * B->data[i];
+            ret->data[i][j] = lhs->data[j] * rhs->data[i];
 
     return ret;
+}
+
+void mat3_scl(const mat3* lhs, const float rhs)
+{
+    for (size_t i = 0; i < 3; i++)
+        for (size_t j = 0; j < 3; j++)
+            lhs->data[i][j] *= rhs;
 }
 
 /* misc matrix operations */
