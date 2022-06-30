@@ -113,13 +113,13 @@ static PyObject* simulate(PyObject* self, PyObject* args)
 static PyMethodDef buffalomethods[] = {
     {
         "load_data",
-        loadData,
+        (PyCFunction)(void(*)(void))loadData,
         METH_VARARGS,
         "Load flight data."
     },
     {
         "simulate",
-        simulate,
+        (PyCFunction)(void(*)(void))simulate,
         METH_VARARGS,
         "Run flight simulation."
     },
