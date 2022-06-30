@@ -61,8 +61,8 @@ static PyObject* loadData(PyObject* self, PyObject* args)
 
         sensor_data_t reading = {
             .time     = t,
-            .accel    = (a == Py_None) ? NAN : PyFloat_AsDouble(a),
-            .pressure = (p == Py_None) ? NAN : PyFloat_AsDouble(p)
+            .accel    = (a == Py_None) ? NAN : (float)PyFloat_AsDouble(a),
+            .pressure = (p == Py_None) ? NAN : (float)PyFloat_AsDouble(p)
         };
         sensor_data[i] = reading;
 
@@ -113,19 +113,20 @@ static PyObject* simulate(PyObject* self, PyObject* args)
 static PyMethodDef buffalomethods[] = {
     {
         "load_data",
-        (PyCFunction)(void(*)(void))loadData,
+        loadData,
         METH_VARARGS,
         "Load flight data."
     },
     {
         "simulate",
-        (PyCFunction)(void(*)(void))simulate,
+        simulate,
         METH_VARARGS,
         "Run flight simulation."
-    }
+    },
+    {NULL, NULL, 0, NULL}
 };
 
-static PyModuleDef buffalomodule = {
+static struct PyModuleDef buffalomodule = {
     PyModuleDef_HEAD_INIT,
     "buffalo",
     "Flight computer simulation.",
@@ -134,4 +135,3 @@ static PyModuleDef buffalomodule = {
 };
 
 PyMODINIT_FUNC PyInit_buffalo() { return PyModule_Create(&buffalomodule); }
-

@@ -4,8 +4,11 @@ from math import log, sqrt
 import numpy as np
 import matplotlib.pyplot as plt
 
-import buffalo
+import faulthandler
 
+faulthandler.enable()
+
+import buffalo
 
 data = np.load(sys.argv[1])
 
@@ -112,4 +115,3 @@ plt.legend()
 plt.tight_layout()
 
 plt.show()
-

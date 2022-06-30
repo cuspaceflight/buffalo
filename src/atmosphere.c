@@ -6,12 +6,12 @@
 static const float Rs = 8.31432f;
 static const float g0 = 9.80665f;
 static const float M = 0.0289644f;
-static const float Lb[7] = {-0.0065f, 0.0f,     0.001,  0.0028f,
+static const float Lb[7] = {-0.0065f, 0.0f,     0.001f,  0.0028f,
                             0.0f,     -0.0028f, -0.002f};
 static const float Pb[7] = {101325.0f, 22632.10f, 5474.89f, 868.02f,
                             110.91f,   66.94f,    3.96f};
-static const float Tb[7] = {288.15f, 216.65, 216.65, 228.65,
-                            270.65,  270.65, 214.65};
+static const float Tb[7] = {288.15f, 216.65f, 216.65f, 228.65f,
+                            270.65f,  270.65f, 214.65f};
 static const float Hb[7] = {0.0f,     11000.0f, 20000.0f, 32000.0f,
                             47000.0f, 51000.0f, 71000.0f};
 

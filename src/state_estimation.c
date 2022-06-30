@@ -38,7 +38,7 @@ void update_state_estimate(const float dt)
     float q;
 
     dt2 = dt * dt;
-    dt2_2 = 0.5 * dt2;
+    dt2_2 = 0.5f * dt2;
     dt2_6 = dt2_2 / 3;
 
     mat3_assign_values(
