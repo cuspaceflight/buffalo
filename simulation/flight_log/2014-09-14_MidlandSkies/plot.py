@@ -125,14 +125,14 @@ with open(sys.argv[1], "rb") as f:
             x *= (3.9 / 1000.0) * 9.80665
             y *= (3.9 / 1000.0) * 9.80665
             z *= (3.9 / 1000.0) * 9.80665
-            outf_lga.write("{},{},{},{}\n".format(timestamp/168e6, x, y, z))
+            outf_lga.write("{},{},{},{}\r\n".format(timestamp/168e6, x, y, z))
         if channel == 0x21:
             x, y, z, _ = struct.unpack("hhhh", packet[8:])
             hga_y.append(y)
             x *= (49 / 1000.0) * 9.80665
             y *= (49 / 1000.0) * 9.80665
             z *= (49 / 1000.0) * 9.80665
-            outf_hga.write("{},{},{},{}\n".format(timestamp/168e6, x, y, z))
+            outf_hga.write("{},{},{},{}\r\n".format(timestamp/168e6, x, y, z))
         if channel == 0x61:
             ch1, ch2, ch3, _ = struct.unpack("hhhh", packet[8:])
             pyro_fire_t.append(timestamp / 168E6)

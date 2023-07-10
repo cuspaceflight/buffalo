@@ -158,7 +158,7 @@ void update_pressure(const gaussian_t* pressure)
     /* If there was an error (couldn't find suitable altitude band) for this
      * pressure, just don't use it. It's probably wrong. */
     if (h == -9999.0f || hp == -9999.0f || hm == -9999.0f) {
-      printf("Couldn't find suitable altitude band for a pressure of %f Pa\n",
+      printf("Couldn't find suitable altitude band for a pressure of %f Pa\r\n",
               pressure->value);
       return;
     }
