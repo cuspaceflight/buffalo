@@ -1,12 +1,11 @@
 from setuptools import setup, Extension
-from platform import system
-
-from glob import glob
+from pathlib import Path
 
 buffalo = Extension(
-    "buffalo",
-    sources=glob("src/*.c"),
-    include_dirs=["include"]
+    "simulation.buffalo",
+    sources=[path.as_posix() for path in Path("src").rglob("*.c")],
+    include_dirs=["include"],
+    extra_compile_args=["--std=c99"]
 )
 
 setup(
@@ -14,7 +13,7 @@ setup(
     version="1.0",
     description="Flight computer simulation.",
     author="H. E. Franks",
-    author_email="henry@cusf.co.uk",
+    author_email="hef36@cam.ac.uk",
     ext_modules=[buffalo]
 )
 
