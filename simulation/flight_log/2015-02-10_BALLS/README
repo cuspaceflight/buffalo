@@ -1,0 +1,10 @@
+M2 launch at BALLS23 in 2015.
+z-axis up.
+O8000 motor.
+
+format is "v2": 8B data, u32 timestamp, u8 metadata (1=body, 2=nose), u8
+channel, u16 checksum.
+
+Channels were 0x20 for low-g accel [i16 x, y, z, 0], 0x22 for barometer [i32
+pressure, temperature]. See m2-electronics/docs/telemetry.md for further
+details.

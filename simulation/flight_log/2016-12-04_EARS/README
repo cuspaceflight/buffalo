@@ -1,0 +1,7 @@
+Test flight at EARS of M3 avionics on Martlet Junior (small cardboard rocket).
+In M3 datalogging format:
+u16 ID, u8 rtr, u8 length, 8 bytes data, u32 timestamp (in 1/1e4 seconds)
+ID is (48<<5)|1 for accel and (49<<5)|1 for baro
+accel is i16 [x y z], baro is i32 [temperature, pressure]
+
+log_00019: flight is 360 to 420 seconds
