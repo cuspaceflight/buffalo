@@ -5,7 +5,7 @@ buffalo = Extension(
     "simulation.buffalo",
     sources=[path.as_posix() for path in Path("src").rglob("*.c")],
     include_dirs=["include"],
-    #extra_compile_args=["-lmg"]
+    extra_compile_args=["--std=c99"]
 )
 
 setup(
